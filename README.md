@@ -9,3 +9,6 @@ This line is a test of the ability to share repos across host
 and virtual machine.
 
 This is a final test on the virtual machine to see if it works.
+
+This is a response by the host machine to see if the VM can 
+properly pull
