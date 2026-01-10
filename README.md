@@ -7,3 +7,5 @@ have access by cloning the repo.
 
 This line is a test of the ability to share repos across host
 and virtual machine.
+
+This is a final test on the virtual machine to see if it works.
