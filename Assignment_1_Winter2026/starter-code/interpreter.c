@@ -25,6 +25,7 @@ int print(char *var);
 int source(char *script);
 int my_ls();
 int badcommandFileDoesNotExist();
+int echo(char *words[], int wordCount);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -65,13 +66,10 @@ int interpreter(char *command_args[], int args_size) {
         if (args_size != 2)
             return badcommand();
         return source(command_args[1]);
-    } else if (strcmp(command_args[0], "my_ls") == 0) {
-        // my_ls command implementation
-        if (args_size != 1)
-            return badcommand();
-        return my_ls();
+
     } else
         return badcommand();
+    }
 }
 
 int help() {
@@ -82,7 +80,8 @@ help			Displays all the commands\n \
 quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
-source SCRIPT.TXT	Executes the file SCRIPT.TXT\n ";
+source SCRIPT.TXT	Executes the file SCRIPT.TXT\n \
+echo STRING/VAR	Prints string or string corresponding to variable\n ";
     printf("%s\n", help_string);
     return 0;
 }
@@ -135,6 +134,41 @@ int source(char *script) {
 
     return errCode;
 }
+int echo(char *words[], int wordCount) {
+        char variable = '$';
+        int found = 0;
+	if (wordCount < 2) {
+		printf("\n");
+		return 0;
+	}
+	
+	// Check if we want a variable
+	if (words[1][0] == variable) {
+		char *varName = words[1] + 1;
+		char *output = mem_get_value(varName);
+		
+		// Check if variable exists
+		if (strcmp(output, "Variable does not exist") == 0) {
+			printf("\n");
+		}
+		else {
+			printf("%s\n", output);
+			free(output);
+		}
+		return 0; 
+	}
+	// Skip command name so start at 1
+	// Print all the words
+	for (int i = 1; i < wordCount; i++) {
+		printf("%s", words[i]);
+		if (i < wordCount - 1) {
+			printf(" ");
+		}
+	}
+	printf("\n");
+	return 0;
+}
+	
 
 int my_ls(){
     DIR *dir;
