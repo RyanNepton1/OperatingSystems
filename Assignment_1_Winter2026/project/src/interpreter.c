@@ -26,6 +26,7 @@ int source(char *script);
 int badcommandFileDoesNotExist();
 int echo(char *words[], int wordCount);
 int my_ls();
+int comp(const void *a, const void *b);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
