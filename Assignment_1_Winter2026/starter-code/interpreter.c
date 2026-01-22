@@ -63,9 +63,12 @@ int interpreter(char *command_args[], int args_size) {
         if (args_size != 2)
             return badcommand();
         return source(command_args[1]);
-
-    } else
+    }
+	else if (strcmp(command_args[0], "echo") == 0) {
+		return echo(command_args[]);	
+    } else {
         return badcommand();
+    }
 }
 
 int help() {
@@ -129,3 +132,15 @@ int source(char *script) {
 
     return errCode;
 }
+int echo(char *words[], int wordCount) {
+        char variable = '$';
+        int found = 0;
+        char[100] output;
+	if (wordCount < 2) {
+		printf('\n');
+		return 0;
+	}
+	
+	// Check if we want a variable
+	if (words[1][0] == variable) {
+		char *varName = words[1];

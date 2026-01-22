@@ -5,7 +5,7 @@
 #include "shell.h"
 #include "interpreter.h"
 #include "shellmemory.h"
-
+#include <ctype.h>
 int parseInput(char ui[]);
 
 // Start of everything
@@ -62,3 +62,11 @@ int parseInput(char inp[]) {
     errorCode = interpreter(words, w);
     return errorCode;
 }
+
+int isAlphanumeric(char inp[]) {
+	for (int i = 0; inp[i] != '\0', i++) {
+		if (!isalnum((unsigned char)inp[i])) {
+			return 1;
+		}
+	}
+	return 0;
