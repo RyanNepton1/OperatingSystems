@@ -88,7 +88,8 @@ quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
 source SCRIPT.TXT	Executes the file SCRIPT.TXT\n \
-echo STRING/VAR	Prints string or string corresponding to variable\n ";
+echo STRING/VAR	Prints string or string corresponding to variable\n \
+my_ls             Lists all files and directories in the current directory\n ";
     printf("%s\n", help_string);
     return 0;
 }
