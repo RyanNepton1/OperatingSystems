@@ -225,7 +225,8 @@ int my_ls(){
     
     // Sort entries alphabetically
     // Numbers come before letters, uppercase before lowercase
-    qsort(entries, count, sizeof(char *), (int (*)(const void *, const void *))strcmp);
+    // removed strcmp to create custom comparison function ( (int (*)(const void *, const void *))strcmp) )
+    qsort(entries, count, sizeof(char *), comp);
     
     // Print all entries
     for (int i = 0; i < count; i++) {
