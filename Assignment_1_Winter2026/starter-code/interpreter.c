@@ -135,7 +135,6 @@ int source(char *script) {
 int echo(char *words[], int wordCount) {
         char variable = '$';
         int found = 0;
-        char[100] output;
 	if (wordCount < 2) {
 		printf('\n');
 		return 0;
@@ -143,4 +142,28 @@ int echo(char *words[], int wordCount) {
 	
 	// Check if we want a variable
 	if (words[1][0] == variable) {
-		char *varName = words[1];
+		char *varName = words[1] + 1;
+		char *output = mem_get_value(varName);
+		
+		// Check if variable exists
+		if (strcmp(output, "Variable does not exist") == 0) {
+			printf("\n");
+		}
+		else {
+			printf("%s\n", output);
+			free(output);
+		}
+		return 0; 
+	}
+	// Skip command name so start at 1
+	// Print all the words
+	for (int i = 1; i < wordCount; i++) {
+		printf("%s", words[i]);
+		if (i < wordCount - 1) {
+			printf(" ");
+		}
+	}
+	printf("\n");
+	return 0;
+}
+	
