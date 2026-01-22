@@ -238,8 +238,6 @@ int my_ls(){
     return 0;
 }
 
-// helpter function for qsort to compare two strings
-int comp(const void *a, const void *b) {
     const char *str1 = *(const char **)a;
     const char *str2 = *(const char **)b;
 
