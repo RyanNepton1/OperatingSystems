@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 #include "shellmemory.h"
 #include "shell.h"
 
@@ -24,6 +25,7 @@ int print(char *var);
 int source(char *script);
 int badcommandFileDoesNotExist();
 int echo(char *words[], int wordCount);
+int my_ls();
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -67,6 +69,10 @@ int interpreter(char *command_args[], int args_size) {
     }
 	else if (strcmp(command_args[0], "echo") == 0) {
 		return echo(command_args, args_size);	
+    } else if (strcmp(command_args[0], "my_ls") == 0) {
+        if (args_size != 1)
+            return badcommand();
+        return my_ls();
     } else {
         return badcommand();
     }
@@ -169,3 +175,64 @@ int echo(char *words[], int wordCount) {
 	return 0;
 }
 	
+int my_ls(){
+    DIR *dir;
+    struct dirent *entry;
+    char **entries = NULL;
+    int count = 0;
+    int capacity = 10;
+    
+    // Allocate initial memory for entries
+    entries = (char **)malloc(capacity * sizeof(char *));
+    if (entries == NULL) {
+        printf("Memory allocation failed\n");
+        return 1;
+    }
+    
+    // Open the current directory
+    dir = opendir(".");
+    if (dir == NULL) {
+        printf("Error opening directory\n");
+        free(entries);
+        return 1;
+    }
+    
+    // Read all entries from the directory
+    while ((entry = readdir(dir)) != NULL) {
+        // Reallocate if necessary
+        if (count >= capacity) {
+            capacity *= 2;
+            entries = (char **)realloc(entries, capacity * sizeof(char *));
+            if (entries == NULL) {
+                printf("Memory allocation failed\n");
+                closedir(dir);
+                return 1;
+            }
+        }
+        
+        // Allocate and copy the entry name
+        entries[count] = (char *)malloc((strlen(entry->d_name) + 1) * sizeof(char));
+        if (entries[count] == NULL) {
+            printf("Memory allocation failed\n");
+            closedir(dir);
+            return 1;
+        }
+        strcpy(entries[count], entry->d_name);
+        count++;
+    }
+    
+    closedir(dir);
+    
+    // Sort entries alphabetically
+    // Numbers come before letters, uppercase before lowercase
+    qsort(entries, count, sizeof(char *), (int (*)(const void *, const void *))strcmp);
+    
+    // Print all entries
+    for (int i = 0; i < count; i++) {
+        printf("%s\n", entries[i]);
+        free(entries[i]);
+    }
+    
+    free(entries);
+    return 0;
+}
