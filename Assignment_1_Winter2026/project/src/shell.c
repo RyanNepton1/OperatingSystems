@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> 
-//#include <unistd.h>
+#include <unistd.h>
 #include "shell.h"
 #include "interpreter.h"
 #include "shellmemory.h"
@@ -20,14 +20,20 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < MAX_USER_INPUT; i++) {
         userInput[i] = '\0';
     }
+
+    int isInteractive = isatty(fileno(stdin));
     
     //init shell memory
     mem_init();
     while(1) {							
-        printf("%c ", prompt);
+        if (isInteractive) {
+            printf("%c ", prompt);
+        }
         // here you should check the unistd library 
         // so that you can find a way to not display $ in the batch mode
-        fgets(userInput, MAX_USER_INPUT-1, stdin);
+        if (fgets(userInput, MAX_USER_INPUT-1, stdin) == NULL) {
+            break; // Exit on EOF
+        }
         errorCode = parseInput(userInput);
         if (errorCode == -1) exit(99);	// ignore all other errors
         memset(userInput, 0, sizeof(userInput));

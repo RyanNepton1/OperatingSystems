@@ -160,9 +160,6 @@ int echo(char *words[], int wordCount) {
 	// Skip command name so start at 1
 	// Print all the words
 	for (int i = 1; i < wordCount; i++) {
-        if (i == 1) {
-            printf("DOLLAR CHECK");
-        }
 		printf("%s", words[i]);
 		if (i < wordCount - 1) {
 			printf(" ");
