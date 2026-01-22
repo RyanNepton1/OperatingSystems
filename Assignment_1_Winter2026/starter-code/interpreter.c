@@ -70,7 +70,7 @@ int interpreter(char *command_args[], int args_size) {
         if (args_size != 1)
             return badcommand();
         return my_ls();
-    } else
+    } else {
         return badcommand();
     }
 }
