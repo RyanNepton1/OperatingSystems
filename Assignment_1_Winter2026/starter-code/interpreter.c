@@ -23,6 +23,7 @@ int set(char *var, char *value);
 int print(char *var);
 int source(char *script);
 int badcommandFileDoesNotExist();
+int echo(char *words[], int wordCount);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -65,7 +66,7 @@ int interpreter(char *command_args[], int args_size) {
         return source(command_args[1]);
     }
 	else if (strcmp(command_args[0], "echo") == 0) {
-		return echo(command_args[]);	
+		return echo(command_args, args_size);	
     } else {
         return badcommand();
     }
@@ -79,7 +80,8 @@ help			Displays all the commands\n \
 quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
-source SCRIPT.TXT	Executes the file SCRIPT.TXT\n ";
+source SCRIPT.TXT	Executes the file SCRIPT.TXT\n \
+echo STRING/VAR	Prints string or string corresponding to variable\n ";
     printf("%s\n", help_string);
     return 0;
 }
@@ -136,7 +138,7 @@ int echo(char *words[], int wordCount) {
         char variable = '$';
         int found = 0;
 	if (wordCount < 2) {
-		printf('\n');
+		printf("\n");
 		return 0;
 	}
 	

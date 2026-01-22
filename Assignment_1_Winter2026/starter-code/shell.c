@@ -64,9 +64,10 @@ int parseInput(char inp[]) {
 }
 
 int isAlphanumeric(char inp[]) {
-	for (int i = 0; inp[i] != '\0', i++) {
+	for (int i = 0; inp[i] != '\0'; i++) {
 		if (!isalnum((unsigned char)inp[i])) {
 			return 1;
 		}
 	}
 	return 0;
+}
