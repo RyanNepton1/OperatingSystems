@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <unistd.h>
 #include "shellmemory.h"
 #include "shell.h"
 
@@ -27,6 +28,7 @@ int badcommandFileDoesNotExist();
 int echo(char *words[], int wordCount);
 int my_ls();
 int comp(const void *a, const void *b);
+int run(char *words[], int wordCount);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -74,7 +76,10 @@ int interpreter(char *command_args[], int args_size) {
         if (args_size != 1)
             return badcommand();
         return my_ls();
-    } else {
+    } else if (strcmp(command_args[0], "run") == 0) {
+        return run(command_args, args_size);
+    }
+    else {
         return badcommand();
     }
 }
@@ -270,4 +275,26 @@ int comp(const void *a, const void *b) {
     }
     //If all characters matched, shorter string comes first
     return (int)strlen(str1) - (int)strlen(str2);
+}
+
+int run(char *words[], int wordCount) {
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("Fork failed");
+        return 1;
+    }
+    if (pid == 0) {
+        char *args[wordCount];
+        for (int i = 1; i < wordCount; i++) {
+            args[i - 1] = words[i];
+        }
+        args[wordCount - 1] = NULL;
+        execvp(args[0], args);
+        exit(1);
+    }
+    else {
+        wait(NULL);
+
+    }
+    return 0;
 }
