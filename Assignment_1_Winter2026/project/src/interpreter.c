@@ -26,6 +26,7 @@ int source(char *script);
 int badcommandFileDoesNotExist();
 int echo(char *words[], int wordCount);
 int my_ls();
+int comp(const void *a, const void *b);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -87,7 +88,8 @@ quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
 source SCRIPT.TXT	Executes the file SCRIPT.TXT\n \
-echo STRING/VAR	Prints string or string corresponding to variable\n ";
+echo STRING/VAR	Prints string or string corresponding to variable\n \
+my_ls			Lists all files and directories in the current directory\n ";
     printf("%s\n", help_string);
     return 0;
 }
@@ -225,7 +227,8 @@ int my_ls(){
     
     // Sort entries alphabetically
     // Numbers come before letters, uppercase before lowercase
-    qsort(entries, count, sizeof(char *), (int (*)(const void *, const void *))strcmp);
+    // removed strcmp to create custom comparison function ( (int (*)(const void *, const void *))strcmp) )
+    qsort(entries, count, sizeof(char *), comp);
     
     // Print all entries
     for (int i = 0; i < count; i++) {
@@ -235,4 +238,36 @@ int my_ls(){
     
     free(entries);
     return 0;
+}
+
+// helpter function for qsort to compare two strings
+int comp(const void *a, const void *b) {
+    const char *str1 = *(const char **)a;
+    const char *str2 = *(const char **)b;
+
+    int i = 0;
+    while (str1[i] != '\0' && str2[i] != '\0') {
+        char ch1 = str1[i];
+        char ch2 = str2[i];
+
+        // Check if characters are different
+        int c1_is_digit = (ch1 >= '0' && ch1 <= '9');
+        int c2_is_digit = (ch2 >= '0' && ch2 <= '9');
+
+        // Numbers come before letters
+        if (c1_is_digit && !c2_is_digit) {
+            return -1; // c1 is a digit, c2 is not
+        }
+        if (!c1_is_digit && c2_is_digit) {
+            return 1; // c2 is a digit, c1 is not
+        }
+        
+        // Both are digits or both letters
+        if (ch1 != ch2) {
+            return (unsigned char)ch1 - (unsigned char)ch2; // direct comaprison
+        }
+        i++;
+    }
+    //If all characters matched, shorter string comes first
+    return (int)strlen(str1) - (int)strlen(str2);
 }
