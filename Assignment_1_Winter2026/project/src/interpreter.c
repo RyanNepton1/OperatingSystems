@@ -119,7 +119,7 @@ my_ls			Lists all files and directories in the current directory\n \
 run CMD [ARG...]	Executes CMD with optional ARGuments in a new process\n \
 my_mkdir DIR_NAME	Creates a new directory with name DIR_NAME\n \
 my_touch FILE_NAME	Creates a new empty file with name FILE_NAME\n \
-my_cd DIR_NAME      Changes the current directory to DIR_NAME\n";
+my_cd DIR_NAME          Changes the current directory to DIR_NAME\n";
     printf("%s\n", help_string);
     return 0;
 }
@@ -370,8 +370,8 @@ int my_touch(char *fileName) {
 
 int my_cd(char *dirName) {
     // Assumption: dirName is not a variable
-    // Allow ".." for parent directory
-    if (strcmp(dirName, "..") != 0) {
+    // Allow ".." for parent directory and "." for current directory
+    if (strcmp(dirName, "..") != 0 && strcmp(dirName, ".") != 0) {
         // Check if dirName is alphanumeric
         for (int i = 0; dirName[i] != '\0'; i++) {
             if (!isalnum((unsigned char)dirName[i])) {
