@@ -35,6 +35,7 @@ int comp(const void *a, const void *b);
 int run(char *words[], int wordCount);
 int my_mkdir(char *dirName);
 int my_touch(char *fileName);
+int my_cd(char *dirName);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -94,8 +95,12 @@ int interpreter(char *command_args[], int args_size) {
             return badcommand();
         }
         return my_touch(command_args[1]);
-    }
-    else {
+    } else if (strcmp(command_args[0], "my_cd") == 0) {
+        if (args_size != 2) {
+            return badcommand();
+        }
+        return my_cd(command_args[1]);
+    } else {
         return badcommand();
     }
 }
@@ -113,7 +118,8 @@ echo STRING/VAR	Prints string or string corresponding to variable\n \
 my_ls			Lists all files and directories in the current directory\n \
 run CMD [ARG...]	Executes CMD with optional ARGuments in a new process\n \
 my_mkdir DIR_NAME	Creates a new directory with name DIR_NAME\n \
-my_touch FILE_NAME	Creates a new empty file with name FILE_NAME\n";
+my_touch FILE_NAME	Creates a new empty file with name FILE_NAME\n \
+my_cd DIR_NAME  Changes the current directory to DIR_NAME\n";
     printf("%s\n", help_string);
     return 0;
 }
@@ -360,4 +366,22 @@ int my_touch(char *fileName) {
     }
     fclose(file);
     return 0;
+}
+
+int my_cd(char *dirName) {
+    // Assumption: dirName is not a variable
+    // Check if dirName is alphanumeric
+    for (int i = 0; dirName[i] != '\0'; i++) {
+        if (!isalnum((unsigned char)dirName[i])) {
+            printf("Bad command: my_mkdir\n");
+            return 1;
+        }
+    }
+    // Change the current directory
+    if (chdir(dirName) == 0) {
+        return 0;
+    } else {
+        printf("Bad command: my_cd\n");
+        return 1;
+    }
 }
