@@ -309,9 +309,9 @@ int run(char *words[], int wordCount) {
 }
 
 int my_mkdir(char *dirName) {
-    char variable = '$';
+    char var = '$';
     // Check if dirName is a variable
-    if (dirName[0] == variable) {
+    if (dirName[0] == var) {
         char *varName = dirName + 1;
         char *resolvedName = mem_get_value(varName);
         if (strcmp(resolvedName, "Variable does not exist") == 0) {
