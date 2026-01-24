@@ -350,15 +350,8 @@ int my_mkdir(char *dirName) {
 }
 
 int my_touch(char *fileName) {
-    // assumption: filename is not a variable
-    // Check if fileName is alphanumeric
-    for (int i = 0; fileName[i] != '\0'; i++) {
-        if (!isalnum((unsigned char)fileName[i])) {
-            printf("Bad command: my_touch\n");
-            return 1;
-        }
-    }
-
+    // Assumption: filename is not a variable
+    // Assumption: filename is alphanumeric
     // Create the file
     FILE *file = fopen(fileName, "a"); // open in append mode, creates file if it doesn't exist
     if (file == NULL) {
