@@ -3,6 +3,9 @@
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <ctype.h>
 #include "shellmemory.h"
 #include "shell.h"
 
@@ -29,6 +32,7 @@ int echo(char *words[], int wordCount);
 int my_ls();
 int comp(const void *a, const void *b);
 int run(char *words[], int wordCount);
+int my_mkdir(char *dirName);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -78,6 +82,8 @@ int interpreter(char *command_args[], int args_size) {
         return my_ls();
     } else if (strcmp(command_args[0], "run") == 0) {
         return run(command_args, args_size);
+    } else if (strcmp(command_args[0], "my_mkdir") == 0) {
+        return my_mkdir(command_args[1]);
     }
     else {
         return badcommand();
@@ -94,7 +100,9 @@ set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
 source SCRIPT.TXT	Executes the file SCRIPT.TXT\n \
 echo STRING/VAR	Prints string or string corresponding to variable\n \
-my_ls			Lists all files and directories in the current directory\n ";
+my_ls			Lists all files and directories in the current directory\n \
+run CMD [ARG...]	Executes CMD with optional ARGuments in a new process\n \
+my_mkdir DIR_NAME	Creates a new directory with name DIR_NAME\n";
     printf("%s\n", help_string);
     return 0;
 }
@@ -297,4 +305,34 @@ int run(char *words[], int wordCount) {
 
     }
     return 0;
+}
+
+int my_mkdir(char *dirName) {
+    char variable = '$';
+    // Check if dirName is a variable
+    if (dirName[0] == variable) {
+        char *varName = dirName + 1;
+        char *resolvedName = mem_get_value(varName);
+        if (strcmp(resolvedName, "Variable does not exist") == 0) {
+            printf("Error: Variable %s does not exist\n", varName);
+            return 1;
+        }
+        dirName = resolvedName;
+    }
+
+    // Check if dirName is alphanumeric
+    for (int i = 0; dirName[i] != '\0'; i++) {
+        if (!isalnum((unsigned char)dirName[i])) {
+            printf("Bad command: my_mkdir\n");
+            return 1;
+        }
+    }
+
+    // Create the directory
+    if (mkdir(dirName, 0755) == 0) { // can I use mkdir here? idk if opendir works too.
+        return 0;
+    } else {
+        printf("Bad command: my_mkdir\n");
+        return 1;
+    }
 }
