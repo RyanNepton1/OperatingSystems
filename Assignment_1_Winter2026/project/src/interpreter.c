@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <ctype.h>
+#include <sys/wait.h>
 #include "shellmemory.h"
 #include "shell.h"
 
@@ -333,7 +334,7 @@ int my_mkdir(char *dirName) {
     }
 
     // Create the directory
-    if (mkdir(dirName, 0755) == 0) { // can I use mkdir here? idk if opendir works too.
+    if (mkdir(dirName, 0755) == 0) { // use mkdir, give owener complete control, and group/others read & execute
         return 0;
     } else {
         printf("Bad command: my_mkdir\n");
