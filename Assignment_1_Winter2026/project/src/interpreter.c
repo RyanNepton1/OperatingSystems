@@ -34,6 +34,7 @@ int my_ls();
 int comp(const void *a, const void *b);
 int run(char *words[], int wordCount);
 int my_mkdir(char *dirName);
+int my_touch(char *fileName);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -88,6 +89,11 @@ int interpreter(char *command_args[], int args_size) {
             return badcommand();
         }
         return my_mkdir(command_args[1]);
+    } else if (strcmp(command_args[0], "my_touch") == 0) {
+        if (args_size != 2) {
+            return badcommand();
+        }
+        return my_touch(command_args[1]);
     }
     else {
         return badcommand();
@@ -106,7 +112,8 @@ source SCRIPT.TXT	Executes the file SCRIPT.TXT\n \
 echo STRING/VAR	Prints string or string corresponding to variable\n \
 my_ls			Lists all files and directories in the current directory\n \
 run CMD [ARG...]	Executes CMD with optional ARGuments in a new process\n \
-my_mkdir DIR_NAME	Creates a new directory with name DIR_NAME\n";
+my_mkdir DIR_NAME	Creates a new directory with name DIR_NAME\n \
+my_touch FILE_NAME	Creates a new empty file with name FILE_NAME\n";
     printf("%s\n", help_string);
     return 0;
 }
@@ -340,4 +347,24 @@ int my_mkdir(char *dirName) {
         printf("Bad command: my_mkdir\n");
         return 1;
     }
+}
+
+int my_touch(char *fileName) {
+    // assumption: filename is not a variable
+    // Check if fileName is alphanumeric
+    for (int i = 0; fileName[i] != '\0'; i++) {
+        if (!isalnum((unsigned char)fileName[i])) {
+            printf("Bad command: my_touch\n");
+            return 1;
+        }
+    }
+
+    // Create the file
+    FILE *file = fopen(fileName, "a"); // open in append mode, creates file if it doesn't exist
+    if (file == NULL) {
+        printf("Bad command: my_touch\n");
+        return 1;
+    }
+    fclose(file);
+    return 0;
 }
