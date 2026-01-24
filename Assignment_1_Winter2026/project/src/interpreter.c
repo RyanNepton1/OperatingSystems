@@ -83,6 +83,9 @@ int interpreter(char *command_args[], int args_size) {
     } else if (strcmp(command_args[0], "run") == 0) {
         return run(command_args, args_size);
     } else if (strcmp(command_args[0], "my_mkdir") == 0) {
+        if (args_size != 2) {
+            return badcommand();
+        }
         return my_mkdir(command_args[1]);
     }
     else {
