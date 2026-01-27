@@ -71,20 +71,25 @@ int parseInput(char inp[]) {
                 errorCode = interpreter(words, w);
                 TotalErrorS += errorCode;
             }
-            w = 0; // reset word count for next command
-            ix++;   // skip the semicolon
+            // reset word count for next command
+            w = 0; 
+            // skip the semicolon
+            ix++;   
             while (inp[ix] == ' ' && ix < 1000) ix++;
         }
         else if (inp[ix] == '\0') break;
         else ix++; 
     }
+    // Run the last command
     errorCode = interpreter(words, w);
+    // See if any errors != 0
     TotalErrorS += errorCode;
     return errorCode;
 }
 
 int isAlphanumeric(char inp[]) {
 	for (int i = 0; inp[i] != '\0'; i++) {
+        // Check if character is not alphanumeric
 		if (!isalnum((unsigned char)inp[i])) {
 			return 1;
 		}

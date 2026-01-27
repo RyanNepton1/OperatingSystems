@@ -332,7 +332,7 @@ int my_mkdir(char *dirName) {
         char *varName = dirName + 1;
         char *resolvedName = mem_get_value(varName);
         if (strcmp(resolvedName, "Variable does not exist") == 0) {
-            printf("Error: Variable %s does not exist\n", varName);
+            printf("Bad command: my_mkdir\n");
             return 1;
         }
         dirName = resolvedName;
