@@ -1,14 +1,10 @@
-# OperatingSystems
+# Operating Systems
+Contributers
+Ryan Nepton 261142946
+Julian Ambrose 261137586
 
-This git repo wil be used as a file sharing system between my 
-virtual machine and host devices. The host will have acces 
-through cloning of the repo. the virtual machine will also 
-have access by cloning the repo.
+Implementation of the OS shell was done using the starter code provided in the assignment folder.
 
-This line is a test of the ability to share repos across host
-and virtual machine.
-
-This is a final test on the virtual machine to see if it works.
-
-This is a response by the host machine to see if the VM can 
-properly pull
+Note:
+- Source code is complete with all commands required
+- All test cases passed though visual inspection
