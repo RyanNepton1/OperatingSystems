@@ -173,8 +173,8 @@ int source(char *script) {
     return errCode;
 }
 int echo(char *words[], int wordCount) {
-        char variable = '$';
-        int found = 0;
+    char variable = '$';
+    int found = 0;
 	if (wordCount < 2) {
 		printf("\n");
 		return 0;
@@ -190,13 +190,14 @@ int echo(char *words[], int wordCount) {
 			printf("\n");
 		}
 		else {
+            // Free the output that is given space by mem_get_value
 			printf("%s\n", output);
 			free(output);
 		}
 		return 0; 
 	}
 	// Skip command name so start at 1
-	// Print all the words
+	// Print all the words to output
 	for (int i = 1; i < wordCount; i++) {
 		printf("%s", words[i]);
 		if (i < wordCount - 1) {
@@ -304,11 +305,14 @@ int comp(const void *a, const void *b) {
 
 
 int run(char *words[], int wordCount) {
+    // Create a new process
     pid_t pid = fork();
+    // Error handling for fork
     if (pid < 0) {
         perror("Fork failed");
         return 1;
     }
+    // If work, iterate through args and execute command
     if (pid == 0) {
         char *args[wordCount];
         for (int i = 1; i < wordCount; i++) {
@@ -319,6 +323,7 @@ int run(char *words[], int wordCount) {
         exit(1);
     }
     else {
+        // Parent process waits for child to finish
         wait(NULL);
 
     }
