@@ -305,7 +305,7 @@ int comp(const void *a, const void *b) {
 
 
 int run(char *words[], int wordCount) {
-    ffflush(stdout);
+    fflush(stdout);
     // Create a new process
     pid_t pid = fork();
     // Error handling for fork
