@@ -305,6 +305,7 @@ int comp(const void *a, const void *b) {
 
 
 int run(char *words[], int wordCount) {
+    ffflush(stdout);
     // Create a new process
     pid_t pid = fork();
     // Error handling for fork
@@ -352,7 +353,7 @@ int my_mkdir(char *dirName) {
     }
 
     // Create the directory
-    if (mkdir(dirName, 0755) == 0) { // use mkdir, give owener complete control, and group/others read & execute
+    if (mkdir(dirName, 0755) == 0) { // use mkdir, give owner complete control, and group/others read & execute
         return 0;
     } else {
         printf("Bad command: my_mkdir\n");
