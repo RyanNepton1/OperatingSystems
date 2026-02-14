@@ -20,6 +20,8 @@ PCB* pcb_create(int start, int end) {
     new_pcb->start = start;
     new_pcb->end = end;
     new_pcb->pc = start;
+    new_pcb->next_pcb = NULL;
+    new_pcb->job_length_score = end - start + 1;
     return new_pcb;
 }
 
