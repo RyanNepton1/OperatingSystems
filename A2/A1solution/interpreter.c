@@ -60,6 +60,7 @@ int cd(char *path);
 int source(char *script);
 int run(char *args[], int args_size);
 int badcommandFileDoesNotExist();
+int exec(char *args[], int arg_size);
 
 // Interpret commands and their arguments
 int interpreter(char *command_args[], int args_size) {
@@ -149,9 +150,9 @@ int interpreter(char *command_args[], int args_size) {
         // Make an array of args
         char *exec_args[args_size - 1];
         for (int i = 1; i < args_size; i++) {
-            exec_args[i] = command_args[i];
+            exec_args[i-1] = command_args[i];
         }
-        return run(exec_args, args_size - 1);
+        return exec(exec_args, args_size - 1);
     } else
         return badcommand();
 }
@@ -386,6 +387,7 @@ int source(char *script) {
     ready_queue_init(&rq, algo);
     ready_queue_enqueue(&rq, process);
     run_scheduler(&rq);
+    return errCode;
 }
 
 int run(char *args[], int arg_size) {
@@ -425,9 +427,10 @@ int run(char *args[], int arg_size) {
     return 0;
 }
 
-/* int exec(char *args[], int arg_size) {
+int exec(char *args[], int arg_size) {
     // Get algo
     SchedulingAlgorithm algo;
+    int errorCode = 0;
     if (strcmp(args[arg_size - 1], "FCFS") == 0) {
         algo = FCFS;
     } else if (strcmp(args[arg_size - 1], "SJF") == 0) {
@@ -439,9 +442,30 @@ int run(char *args[], int arg_size) {
     } else {
         return badcommand();
     }
+    // Set up ready queue and PCB
+    ready_queue rq;
+    ready_queue_init(&rq, algo);
+    for (int i = 0; i < arg_size - 1; i++) {
+        int start, end;
+        int lines = code_load(args[i], &start, &end);
+        if (lines < 0) {
+            return badcommandFileDoesNotExist();
+        }
+        PCB* process = pcb_create(start, end);
+        if (process == NULL) {
+            // something went wrong creating the PCB, just give up.
+            fprintf(stderr, "exec: failed to create PCB for script %s\n", args[0]);
+            return -1;
+        }
+        ready_queue_enqueue(&rq, process);
+    }
+    // now all are made and enqueued.
+    run_scheduler(&rq);
+    return errorCode;
+}
 
 
-*/
+
 
     
 
