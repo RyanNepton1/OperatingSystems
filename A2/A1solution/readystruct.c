@@ -53,7 +53,29 @@ PCB* ready_queue_dequeue(ready_queue* rq) {
     return old_pcb;
 }
 
+int ready_queue_is_empty(ready_queue* rq) {
+    if (rq->head == NULL) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
-
+void ready_queue_age(ready_queue* rq) {
+    if (rq->algorithm != AGING || rq->head == NULL) {
+        return;
+    }
+    
+    PCB* curr = rq->head->next_pcb;
+    while (curr != NULL) {
+        if (curr->job_length_score > 0) {
+            curr->job_length_score--;
+            curr = curr->next_pcb;
+        }
+        else {
+            curr = curr->next_pcb;
+        }
+    }
+}
 
 

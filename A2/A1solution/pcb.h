@@ -1,3 +1,6 @@
+#ifndef PCB_H       // If PCB_H is not defined
+#define PCB_H
+
 typedef struct PCB{
     int pid;
     int start;
@@ -11,3 +14,5 @@ void pcb_init();
 PCB* pcb_create(int start, int end);
 void pcb_destroy(PCB* new_pcb);
 int pcb_get_next_pid();
+
+#endif

@@ -22,6 +22,10 @@
 
 #include "shellmemory.h"
 #include "shell.h"
+#include "interpreter.h"
+#include "scheduler.h"
+#include "readystruct.h"
+#include "pcb.h"
 
 int badcommand() {
     printf("Unknown Command\n");
@@ -138,6 +142,16 @@ int interpreter(char *command_args[], int args_size) {
             return badcommand();
         return run(&command_args[1], args_size - 1);
 
+    } else if (strcmp(command_args[0], "exec") == 0) {
+        if (args_size < 3) {
+            return badcommand();
+        }
+        // Make an array of args
+        char *exec_args[args_size - 1];
+        for (int i = 1; i < args_size; i++) {
+            exec_args[i] = command_args[i];
+        }
+        return run(exec_args, args_size - 1);
     } else
         return badcommand();
 }
@@ -356,27 +370,22 @@ int cd(char *path) {
 
 int source(char *script) {
     int errCode = 0;
-    char line[MAX_USER_INPUT];
-    FILE *p = fopen(script, "rt");      // the program is in a file
-
-    if (p == NULL) {
+    int start, end;
+    int lines = code_load(script, &start, &end);
+    if (lines < 0) {
         return badcommandFileDoesNotExist();
     }
-
-    fgets(line, MAX_USER_INPUT - 1, p);
-    while (1) {
-        errCode = parseInput(line);     // which calls interpreter()
-        memset(line, 0, sizeof(line));
-
-        if (feof(p)) {
-            break;
-        }
-        fgets(line, MAX_USER_INPUT - 1, p);
+    PCB* process = pcb_create(start, end);
+    if (process == NULL) {
+        // something went wrong creating the PCB, just give up.
+        fprintf(stderr, "source: failed to create PCB for script %s\n", script);
+        return -1;
     }
-
-    fclose(p);
-
-    return errCode;
+    ready_queue rq;
+    SchedulingAlgorithm algo = FCFS;
+    ready_queue_init(&rq, algo);
+    ready_queue_enqueue(&rq, process);
+    run_scheduler(&rq);
 }
 
 int run(char *args[], int arg_size) {
@@ -416,4 +425,23 @@ int run(char *args[], int arg_size) {
     return 0;
 }
 
+/* int exec(char *args[], int arg_size) {
+    // Get algo
+    SchedulingAlgorithm algo;
+    if (strcmp(args[arg_size - 1], "FCFS") == 0) {
+        algo = FCFS;
+    } else if (strcmp(args[arg_size - 1], "SJF") == 0) {
+        algo = SJF;
+    } else if (strcmp(args[arg_size - 1], "RR") == 0) {
+        algo = RR;
+    } else if (strcmp(args[arg_size - 1], "AGING") == 0) {
+        algo = AGING;
+    } else {
+        return badcommand();
+    }
+
+
+*/
+
+    
 

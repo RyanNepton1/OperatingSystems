@@ -102,7 +102,7 @@ int code_load(char *filename, int *start, int *end) {
     return lineCount;
 }
 
-char* code_get_line(int line_num, char *line) {
+char* code_get_line(int line_num) {
     if (line_num < 0 || line_num >= codememory.next_free || codememory.lines[line_num] == NULL) {
         return NULL;
     }
