@@ -9,7 +9,7 @@
 void run_scheduler(ready_queue* rq) {
     int errorCode = 0;
     // Check if preemptive algo
-    if (rq->algorithm == SJF || rq->algorithm == FCFS || rq->algorithm == NULL) {
+    if (rq->algorithm == SJF || rq->algorithm == FCFS) {
         while (ready_queue_is_empty(rq) == 0) {
             // Dequeu and run
             PCB* curr_pcb = ready_queue_dequeue(rq);

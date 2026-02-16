@@ -41,6 +41,10 @@ void mem_init() {
         shellmemory[i].var = "none";
         shellmemory[i].value = "none";
     }
+    codememory.next_free = 0;
+    for (i = 0; i < Max_Length; i++) {
+        codememory.lines[i] = NULL;
+    }
 }
 
 // Set key value pair
@@ -90,13 +94,12 @@ int code_load(char *filename, int *start, int *end) {
     *start = codememory.next_free;
     while (fgets(line, Max_Length, fp) != NULL) {
         line[strcspn(line, "\n")] = 0; // remove newline character
-        codememory.lines[lineCount] = strdup(line);
+        codememory.lines[codememory.next_free] = strdup(line);
         lineCount++;
         codememory.next_free++;
 
     }
 
-    codememory.next_free = lineCount;
     *end = codememory.next_free - 1;
     fclose(fp);
     return lineCount;

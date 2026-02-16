@@ -1,5 +1,6 @@
 #include "readystruct.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 
 void ready_queue_init(ready_queue* rq, SchedulingAlgorithm algorithm) {
@@ -66,7 +67,7 @@ void ready_queue_age(ready_queue* rq) {
         return;
     }
     
-    PCB* curr = rq->head->next_pcb;
+    PCB* curr = rq->head;
     while (curr != NULL) {
         if (curr->job_length_score > 0) {
             curr->job_length_score--;
