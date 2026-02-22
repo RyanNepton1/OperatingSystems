@@ -2,15 +2,19 @@
 #include <stdio.h>
 #include "pcb.h"
 
+
+// Static variable to keep track of the next PID to assign
 static int next_pid = 1;
 void pcb_init() {
     next_pid = 1;
 }
 
+// Function to get the next PID
 int pcb_get_next_pid() {
     return next_pid++;
 }
 
+// Function to create a new PCB with the given start and end times (instructions)
 PCB* pcb_create(int start, int end) {
     PCB* new_pcb = malloc(sizeof(PCB));
     if (new_pcb == NULL) {
@@ -25,6 +29,7 @@ PCB* pcb_create(int start, int end) {
     return new_pcb;
 }
 
+// Function to free the memory allocated for a PCB  
 void pcb_destroy(PCB* old_pcb) {
     if (old_pcb == NULL) {
         return;

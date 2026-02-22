@@ -3,14 +3,17 @@
 #include <stdio.h>
 
 
+// Function to initialize the ready queue
 void ready_queue_init(ready_queue* rq, SchedulingAlgorithm algorithm) {
     rq->head = NULL;
     rq->tail = NULL;
     rq->algorithm = algorithm;
 }
 
+// Function to enqueue a PCB into the ready queue based on the scheduling algorithm
 void ready_queue_enqueue(ready_queue* rq, PCB* new_pcb) {
     new_pcb ->next_pcb = NULL;
+    // Add to end if FCFS or RR
     if (rq->algorithm == FCFS || rq->algorithm == RR ) {
         if (rq->tail == NULL) {
             rq->head = new_pcb;
@@ -20,6 +23,7 @@ void ready_queue_enqueue(ready_queue* rq, PCB* new_pcb) {
             rq->tail = new_pcb;
         }
     }
+    // Add based on job length score if SJF or AGING
     else if (rq->algorithm == SJF || rq->algorithm == AGING) {
         if (rq->head == NULL) {
             rq->head = new_pcb;
@@ -28,6 +32,7 @@ void ready_queue_enqueue(ready_queue* rq, PCB* new_pcb) {
             new_pcb->next_pcb = rq->head;
             rq->head = new_pcb;
         } else {
+            // Iterate through LL and insert when appropriate
             PCB* checking_pcb = rq->head;
             while ((checking_pcb->next_pcb != NULL) && (checking_pcb->next_pcb->job_length_score <= new_pcb->job_length_score)) {
                 checking_pcb = checking_pcb->next_pcb;
@@ -41,6 +46,7 @@ void ready_queue_enqueue(ready_queue* rq, PCB* new_pcb) {
     }
 }
 
+// Dequeue the head of the PCB LL
 PCB* ready_queue_dequeue(ready_queue* rq) {
     if (rq->head == NULL) {
         return NULL;
@@ -54,6 +60,7 @@ PCB* ready_queue_dequeue(ready_queue* rq) {
     return old_pcb;
 }
 
+// Check if the ready queue is empty
 int ready_queue_is_empty(ready_queue* rq) {
     if (rq->head == NULL) {
         return 1;
@@ -62,6 +69,7 @@ int ready_queue_is_empty(ready_queue* rq) {
     }
 }
 
+// Function to age the PCBs in the ready queue (only for AGING algorithm)
 void ready_queue_age(ready_queue* rq) {
     if (rq->algorithm != AGING || rq->head == NULL) {
         return;
