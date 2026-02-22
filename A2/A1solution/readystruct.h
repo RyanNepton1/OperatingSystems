@@ -7,7 +7,8 @@ typedef enum {
     FCFS,
     SJF,
     RR,
-    AGING
+    AGING, 
+    RR30
 } SchedulingAlgorithm;
 
 typedef struct {

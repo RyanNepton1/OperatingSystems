@@ -439,7 +439,10 @@ int exec(char *args[], int arg_size) {
         algo = RR;
     } else if (strcmp(args[arg_size - 1], "AGING") == 0) {
         algo = AGING;
-    } else {
+    } else if (strcmp(args[arg_size - 1], "RR30") == 0) {
+        algo = RR30;
+    }
+    else {
         return badcommand();
     }
     // Set up ready queue and PCB

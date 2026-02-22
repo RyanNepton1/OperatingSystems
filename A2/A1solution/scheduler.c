@@ -82,4 +82,29 @@ void run_scheduler(ready_queue* rq) {
             }
         }
     }
+    else if (rq->algorithm == RR30) {
+        while (ready_queue_is_empty(rq) == 0) {
+            // Dequeue
+            PCB* curr_pcb = ready_queue_dequeue(rq);
+            if (curr_pcb == NULL) {
+                break;
+            }
+            // Set # of lines to run for this time slice
+            int time_slice = 30;
+            for (int i = 0; i < time_slice; i++) {
+                char* line = code_get_line(curr_pcb->pc);
+                if (line != NULL) {
+                    errorCode += parseInput(line);
+                }
+                curr_pcb->pc++;
+            }
+            // Check if done and enqueue or destroy
+            if (curr_pcb->pc <= curr_pcb->end) {
+                ready_queue_enqueue(rq, curr_pcb);
+            } else {
+                free_code_memory(curr_pcb->start, curr_pcb->end);
+                pcb_destroy(curr_pcb);
+            }
+        }
+    }
 }
