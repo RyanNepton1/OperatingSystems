@@ -27,6 +27,9 @@
 #include "readystruct.h"
 #include "pcb.h"
 
+// Global flag for background mode (set when a trailing '#' is present)
+int background_mode = 0;
+
 int badcommand() {
     printf("Unknown Command\n");
     return 1;
@@ -147,11 +150,22 @@ int interpreter(char *command_args[], int args_size) {
         if (args_size < 3) {
             return badcommand();
         }
-        // Make an array of args
+        // Check for background flag ('#') as the last argument.
+        background_mode = 0;
+        if (strcmp(command_args[args_size - 1], "#") == 0) {
+            background_mode = 1;
+            args_size -= 1; // remove the '#' from the argument count
+            if (args_size < 3) {
+                return badcommand();
+            }
+        }
+
+        // Make an array of args (excluding the command name and any '#')
         char *exec_args[args_size - 1];
         for (int i = 1; i < args_size; i++) {
             exec_args[i-1] = command_args[i];
         }
+
         return exec(exec_args, args_size - 1);
     } else
         return badcommand();
@@ -448,6 +462,20 @@ int exec(char *args[], int arg_size) {
     // Set up ready queue and PCB
     ready_queue rq;
     ready_queue_init(&rq, algo);
+    // If background mode is requested, put the currently running script
+    // at the front of the new ready queue so it continues first.
+    if (background_mode) {
+        PCB* curr = scheduler_get_current_pcb();
+        if (curr != NULL) {
+            ready_queue_enqueue_front(&rq, curr);
+            // ask the scheduler that called us to yield this PCB (it has
+            // been transferred to the new ready queue)
+            scheduler_request_yield();
+        }
+        // reset the background flag for subsequent commands
+        background_mode = 0;
+    }
+
     for (int i = 0; i < arg_size - 1; i++) {
         int start, end;
         int lines = code_load(args[i], &start, &end);

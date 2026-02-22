@@ -87,4 +87,16 @@ void ready_queue_age(ready_queue* rq) {
     }
 }
 
+// Enqueue a PCB at the front of the ready queue (force to front)
+void ready_queue_enqueue_front(ready_queue* rq, PCB* new_pcb) {
+    new_pcb->next_pcb = NULL;
+    if (rq->head == NULL) {
+        rq->head = new_pcb;
+        rq->tail = new_pcb;
+    } else {
+        new_pcb->next_pcb = rq->head;
+        rq->head = new_pcb;
+    }
+}
+
 
