@@ -150,12 +150,11 @@ int interpreter(char *command_args[], int args_size) {
         if (args_size < 3) {
             return badcommand();
         }
-        // Make an array of args (excluding the command name and any '#')
+        // Make an array of args
         char *exec_args[args_size - 1];
         for (int i = 1; i < args_size; i++) {
             exec_args[i-1] = command_args[i];
         }
-
         return exec(exec_args, args_size - 1);
     } else
         return badcommand();
