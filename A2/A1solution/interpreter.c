@@ -150,16 +150,6 @@ int interpreter(char *command_args[], int args_size) {
         if (args_size < 3) {
             return badcommand();
         }
-        // Check for background flag ('#') as the last argument.
-        background_mode = 0;
-        if (strcmp(command_args[args_size - 1], "#") == 0) {
-            background_mode = 1;
-            args_size -= 1; // remove the '#' from the argument count
-            if (args_size < 3) {
-                return badcommand();
-            }
-        }
-
         // Make an array of args (excluding the command name and any '#')
         char *exec_args[args_size - 1];
         for (int i = 1; i < args_size; i++) {
@@ -442,6 +432,12 @@ int run(char *args[], int arg_size) {
 }
 
 int exec(char *args[], int arg_size) {
+    
+    if (strcmp(args[arg_size - 1], "#") == 0) {
+        background_mode = 1;
+        arg_size--; // ignore the trailing '#'
+    }
+    
     // Get algo
     SchedulingAlgorithm algo;
     int errorCode = 0;
@@ -455,8 +451,7 @@ int exec(char *args[], int arg_size) {
         algo = AGING;
     } else if (strcmp(args[arg_size - 1], "RR30") == 0) {
         algo = RR30;
-    }
-    else {
+    } else {
         return badcommand();
     }
     // Set up ready queue and PCB
