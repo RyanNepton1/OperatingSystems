@@ -456,12 +456,17 @@ int exec(char *args[], int arg_size) {
     // Set up ready queue and PCB
     ready_queue rq;
     ready_queue_init(&rq, algo);
-    // If background mode is requested, put the currently running script
-    // at the front of the new ready queue so it continues first.
+    // If background mode is requested, create a new PCB for the remaining
+    // batch script lines and put it at the front of the new ready queue.
     if (background_mode) {
         PCB* curr = scheduler_get_current_pcb();
         if (curr != NULL) {
-            ready_queue_enqueue_front(&rq, curr);
+            // Create a new PCB for the rest of the current script
+            // (from next line to end)
+            PCB* remaining = pcb_create(curr->pc + 1, curr->end);
+            if (remaining != NULL) {
+                ready_queue_enqueue_front(&rq, remaining);
+            }
             // ask the scheduler that called us to yield this PCB (it has
             // been transferred to the new ready queue)
             scheduler_request_yield();
