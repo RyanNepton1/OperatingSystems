@@ -25,6 +25,7 @@ void ready_queue_enqueue_front(ready_queue* rq, PCB* new_pcb);
 PCB* ready_queue_dequeue(ready_queue* rq);
 int ready_queue_is_empty(ready_queue* rq);
 void ready_queue_age(ready_queue* rq);
+void ready_queue_enqueue_front(ready_queue* rq, PCB* new_pcb);
 
 
 #endif
