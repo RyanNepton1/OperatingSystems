@@ -54,7 +54,9 @@ void run_scheduler(ready_queue* rq) {
                 // don't free or destroy it here.
                 continue;
             }
-            free_code_memory(curr_pcb->start, curr_pcb->end);
+            if (curr_pcb->should_free_code) {
+                free_code_memory(curr_pcb->start, curr_pcb->end);
+            }
             pcb_destroy(curr_pcb);
         }
     }
@@ -90,7 +92,9 @@ void run_scheduler(ready_queue* rq) {
             if (curr_pcb->pc <= curr_pcb->end) {
                 ready_queue_enqueue(rq, curr_pcb);
             } else {
-                free_code_memory(curr_pcb->start, curr_pcb->end);
+                if (curr_pcb->should_free_code) {
+                    free_code_memory(curr_pcb->start, curr_pcb->end);
+                }
                 pcb_destroy(curr_pcb);
             }
         }
@@ -128,7 +132,9 @@ void run_scheduler(ready_queue* rq) {
             if (curr_pcb->pc <= curr_pcb->end) {
                 ready_queue_enqueue(rq, curr_pcb);
             } else {
-                free_code_memory(curr_pcb->start, curr_pcb->end);
+                if (curr_pcb->should_free_code) {
+                    free_code_memory(curr_pcb->start, curr_pcb->end);
+                }
                 pcb_destroy(curr_pcb);
             }
         }
@@ -153,7 +159,9 @@ void run_scheduler(ready_queue* rq) {
             if (curr_pcb->pc <= curr_pcb->end) {
                 ready_queue_enqueue(rq, curr_pcb);
             } else {
-                free_code_memory(curr_pcb->start, curr_pcb->end);
+                if (curr_pcb->should_free_code) {
+                    free_code_memory(curr_pcb->start, curr_pcb->end);
+                }
                 pcb_destroy(curr_pcb);
             }
         }

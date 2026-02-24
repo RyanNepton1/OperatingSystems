@@ -462,8 +462,9 @@ int exec(char *args[], int arg_size) {
         PCB* curr = scheduler_get_current_pcb();
         if (curr != NULL) {
             // Create a new PCB for the rest of the current script
-            // (from next line to end)
-            PCB* remaining = pcb_create(curr->pc + 1, curr->end);
+            // (from next line to end). Use pcb_create_nofree since the code
+            // is already loaded and owned by the original script.
+            PCB* remaining = pcb_create_nofree(curr->pc + 1, curr->end);
             if (remaining != NULL) {
                 ready_queue_enqueue_front(&rq, remaining);
             }
