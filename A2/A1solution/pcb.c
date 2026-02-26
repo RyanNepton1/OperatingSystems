@@ -41,7 +41,7 @@ PCB* pcb_create_nofree(int start, int end) {
 
 // Function to free the memory allocated for a PCB  
 void pcb_destroy(PCB* old_pcb) {
-    if (old_pcb == NULL) {
+    if (old_pcb == NULL || old_pcb->should_free_code == 0) {
         return;
     }
     free(old_pcb);

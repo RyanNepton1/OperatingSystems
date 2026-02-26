@@ -14,7 +14,7 @@ void ready_queue_init(ready_queue* rq, SchedulingAlgorithm algorithm) {
 void ready_queue_enqueue(ready_queue* rq, PCB* new_pcb) {
     new_pcb ->next_pcb = NULL;
     // Add to end if FCFS or RR
-    if (rq->algorithm == FCFS || rq->algorithm == RR ) {
+    if (rq->algorithm == FCFS || rq->algorithm == RR || rq->algorithm == RR30) {
         if (rq->tail == NULL) {
             rq->head = new_pcb;
             rq->tail = new_pcb;

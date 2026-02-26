@@ -114,6 +114,28 @@ int code_load(char *filename, int *start, int *end) {
     return lineCount;
 }
 
+// Load remaining lines from stdin into code memory. This is used in batch
+// mode when an `exec ... #` is encountered; the rest of the piped input
+// is the batch script process. Returns number of lines loaded, -1 on error.
+int code_load_from_stdin(int *start, int *end) {
+    char line[Max_Length];
+    int lineCount = 0;
+    // Start at next free location
+    *start = codememory.next_free;
+    // Read until EOF
+    while (fgets(line, Max_Length, stdin) != NULL) {
+        line[strcspn(line, "\n")] = 0;
+        codememory.lines[codememory.next_free] = strdup(line);
+        lineCount++;
+        codememory.next_free++;
+        if (codememory.next_free >= Max_Length) {
+            break; // prevent overflow
+        }
+    }
+    *end = codememory.next_free - 1;
+    return lineCount;
+}
+
 // Function to get a line of code from code memory based on the line number
 char* code_get_line(int line_num) {
     if (line_num < 0 || line_num >= codememory.next_free || codememory.lines[line_num] == NULL) {

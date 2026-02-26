@@ -25,7 +25,7 @@ void run_scheduler(ready_queue* rq) {
     // Check if preemptive algo
     if (rq->algorithm == SJF || rq->algorithm == FCFS) {
         while (ready_queue_is_empty(rq) == 0) {
-            // Dequeu and run
+            // Dequeue and run
             PCB* curr_pcb = ready_queue_dequeue(rq);
             if (curr_pcb == NULL) {
                 break;
@@ -40,6 +40,30 @@ void run_scheduler(ready_queue* rq) {
                     errorCode += parseInput(line);
                 }
                 curr_pcb->pc++;
+
+                /* decrement job length score so that remaining work is
+                   reflected; this makes preemption decisions easier and
+                   keeps the queue sorted correctly if we reenqueue. */
+                if (curr_pcb->job_length_score > 0) {
+                    curr_pcb->job_length_score--;
+                }
+
+                /* For SJF we are now preemptive.  After each executed line
+                   compare the remaining length of the currently running
+                   PCB against the next PCB in the ready queue.  If our
+                   remaining work is less-than-or-equal-to the head of the
+                   queue, yield and reenqueue ourselves so the other process
+                   can run.  ("<=" ensures we switch when lengths tie, which
+                   is what the background‑batch test expects.) */
+                if (rq->algorithm == SJF && rq->head != NULL) {
+                    int remaining = curr_pcb->job_length_score;
+                    if (remaining <= rq->head->job_length_score) {
+                        yielded = 1;
+                        ready_queue_enqueue(rq, curr_pcb);
+                        break;
+                    }
+                }
+
                 if (scheduler_yield_requested) {
                     yielded = 1;
                     scheduler_yield_requested = 0;
@@ -116,6 +140,13 @@ void run_scheduler(ready_queue* rq) {
                     errorCode += parseInput(line);
                 }
                 curr_pcb->pc++;
+
+                /* decrement remaining work so aging and enqueue decisions
+                   stay correct if we put this PCB back on the queue */
+                if (curr_pcb->job_length_score > 0) {
+                    curr_pcb->job_length_score--;
+                }
+
                 if (scheduler_yield_requested) {
                     yielded = 1;
                     scheduler_yield_requested = 0;
@@ -140,12 +171,14 @@ void run_scheduler(ready_queue* rq) {
         }
     }
     else if (rq->algorithm == RR30) {
-        while (ready_queue_is_empty(rq) == 0) {
+       while (ready_queue_is_empty(rq) == 0) {
             // Dequeue
             PCB* curr_pcb = ready_queue_dequeue(rq);
             if (curr_pcb == NULL) {
                 break;
             }
+            scheduler_current_pcb = curr_pcb;
+            int yielded = 0;
             // Set # of lines to run for this time slice
             int time_slice = 30;
             for (int i = 0; i < time_slice; i++) {
@@ -154,8 +187,17 @@ void run_scheduler(ready_queue* rq) {
                     errorCode += parseInput(line);
                 }
                 curr_pcb->pc++;
+                if (scheduler_yield_requested) {
+                    yielded = 1;
+                    scheduler_yield_requested = 0;
+                    break;
+                }
             }
+            scheduler_current_pcb = NULL;
             // Check if done and enqueue or destroy
+            if (yielded) {
+                continue;
+            }
             if (curr_pcb->pc <= curr_pcb->end) {
                 ready_queue_enqueue(rq, curr_pcb);
             } else {

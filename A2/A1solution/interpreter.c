@@ -453,29 +453,33 @@ int exec(char *args[], int arg_size) {
     } else {
         return badcommand();
     }
+    // If background mode is requested (trailing '#') and we're in
+    // batch mode (stdin is not a tty), read the rest of stdin and create
+    // an independent PCB for those lines before building the ready queue.
+    PCB* batch_pcb = NULL;
+    if (background_mode && !isatty(fileno(stdin))) {
+        int bstart, bend;
+        int lines = code_load_from_stdin(&bstart, &bend);
+        if (lines > 0) {
+            batch_pcb = pcb_create(bstart, bend);
+            if (batch_pcb == NULL) {
+                fprintf(stderr, "exec: failed to create PCB for batch input\n");
+                return -1;
+            }
+        }
+        background_mode = 0; // reset
+    }
+
     // Set up ready queue and PCB
     ready_queue rq;
     ready_queue_init(&rq, algo);
-    // If background mode is requested, create a new PCB for the remaining
-    // batch script lines and put it at the front of the new ready queue.
-    if (background_mode) {
-        PCB* curr = scheduler_get_current_pcb();
-        if (curr != NULL) {
-            // Create a new PCB for the rest of the current script
-            // (from next line to end). Use pcb_create_nofree since the code
-            // is already loaded and owned by the original script.
-            PCB* remaining = pcb_create_nofree(curr->pc + 1, curr->end);
-            if (remaining != NULL) {
-                ready_queue_enqueue_front(&rq, remaining);
-            }
-            // ask the scheduler that called us to yield this PCB (it has
-            // been transferred to the new ready queue)
-            scheduler_request_yield();
-        }
-        // reset the background flag for subsequent commands
-        background_mode = 0;
-    }
 
+    // Enqueue all of the specified programs first.  We deliberately do this
+    // *before* inserting the batch PCB (if any) because the enqueue logic for
+    // SJF/AGING will place a shorter job ahead of whatever happens to be at
+    // the head of the list.  By adding the batch process last and using
+    // `enqueue_front`, we guarantee that it initially sits at the front of the
+    // ready queue regardless of its computed job length.
     for (int i = 0; i < arg_size - 1; i++) {
         int start, end;
         int lines = code_load(args[i], &start, &end);
@@ -490,13 +494,15 @@ int exec(char *args[], int arg_size) {
         }
         ready_queue_enqueue(&rq, process);
     }
+
+    // If we made a batch PCB, insert it at the front *after* enqueueing the
+    // other jobs.  This ensures the batch code always starts first, even under
+    // SJF/AGING, without having to cheat by setting a special score value.
+    if (batch_pcb != NULL) {
+        ready_queue_enqueue_front(&rq, batch_pcb);
+    }
+
     // now all are made and enqueued.
     run_scheduler(&rq);
     return errorCode;
 }
-
-
-
-
-    
-
