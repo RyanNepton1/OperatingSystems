@@ -8,10 +8,7 @@
 #include <pthread.h>
 #include <time.h>
 
-// Track the currently executing PCB so `exec` can manipulate scheduling
 static PCB* scheduler_current_pcb = NULL;
-// When set, the scheduler should stop executing the current PCB and
-// allow it to be handled by another ready queue.
 static int scheduler_yield_requested = 0;
 
 // Mutex for shared PCB state

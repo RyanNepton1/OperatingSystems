@@ -7,8 +7,6 @@
 void run_scheduler(ready_queue* rq);
 void clean_PCB(PCB* pcb);
 
-// Scheduler runtime helpers used by `exec`/interpreter to interact
-// with the currently-running PCB and request yielding.
 PCB* scheduler_get_current_pcb();
 void scheduler_request_yield();
 void scheduler_init_mt(ready_queue* mt_queue, SchedulingAlgorithm algo);
