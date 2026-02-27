@@ -98,5 +98,3 @@ void ready_queue_enqueue_front(ready_queue* rq, PCB* new_pcb) {
         rq->head = new_pcb;
     }
 }
-
-

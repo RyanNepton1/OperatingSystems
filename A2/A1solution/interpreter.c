@@ -27,6 +27,8 @@
 #include "readystruct.h"
 #include "pcb.h"
 
+int isMultiThreaded = 0; // global flag for whether exec was called with trailing "MT"
+
 // Global flag for background mode (set when a trailing '#' is present)
 int background_mode = 0;
 
@@ -174,6 +176,9 @@ source SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
 }
 
 int quit() {
+    if (isMultiThreaded) {
+        scheduler_shutdown_mt();
+    }
     printf("Bye!\n");
     exit(0);
 }
@@ -431,6 +436,11 @@ int run(char *args[], int arg_size) {
 }
 
 int exec(char *args[], int arg_size) {
+
+    if (strcmp(args[arg_size - 1], "MT") == 0) {
+        isMultiThreaded = 1;
+        arg_size--; // ignore the trailing 'MT'
+    }
     
     if (strcmp(args[arg_size - 1], "#") == 0) {
         background_mode = 1;
@@ -502,7 +512,23 @@ int exec(char *args[], int arg_size) {
         ready_queue_enqueue_front(&rq, batch_pcb);
     }
 
+    // Store background_mode state before it gets reset
+    int was_background = background_mode;
+    
     // now all are made and enqueued.
-    run_scheduler(&rq);
+    if (isMultiThreaded) {
+        scheduler_init_mt(&rq, algo);
+        // In MT mode, worker threads handle execution.
+        // Only wait if NOT in background mode.
+        if (!was_background) {
+            scheduler_wait_mt(&rq);
+        }
+    } else {
+        run_scheduler(&rq);
+    }
+    
+    // Reset background_mode after exec
+    background_mode = 0;
+    
     return errorCode;
 }

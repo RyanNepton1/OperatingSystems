@@ -11,6 +11,10 @@ void clean_PCB(PCB* pcb);
 // with the currently-running PCB and request yielding.
 PCB* scheduler_get_current_pcb();
 void scheduler_request_yield();
+void scheduler_init_mt(ready_queue* mt_queue, SchedulingAlgorithm algo);
+void scheduler_wait_mt(ready_queue* mt_queue);
 
+// Shutdown the multithreading worker pool
+void scheduler_shutdown_mt();
 
 #endif

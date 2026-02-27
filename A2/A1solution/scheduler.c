@@ -5,12 +5,30 @@
 #include "interpreter.h"
 #include "shell.h"
 #include "shellmemory.h"
+#include <pthread.h>
+#include <time.h>
 
 // Track the currently executing PCB so `exec` can manipulate scheduling
 static PCB* scheduler_current_pcb = NULL;
 // When set, the scheduler should stop executing the current PCB and
 // allow it to be handled by another ready queue.
 static int scheduler_yield_requested = 0;
+
+// Mutex for shared PCB state
+typedef struct {
+    pthread_mutex_t mutex;
+    PCB* pcb;
+} SharedPCB;
+
+static SharedPCB shared_pcb = {PTHREAD_MUTEX_INITIALIZER, NULL};
+
+// Multithreading worker pool variables
+static int mt_initialized = 0;
+static pthread_mutex_t mt_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t mt_queue_cond = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t mt_done_cond = PTHREAD_COND_INITIALIZER;
+static int mt_shutdown = 0;
+static pthread_t worker_threads[2];
 
 PCB* scheduler_get_current_pcb() {
     return scheduler_current_pcb;
@@ -208,4 +226,133 @@ void run_scheduler(ready_queue* rq) {
             }
         }
     }
+}
+
+// Worker thread function for multithreading
+void* worker_thread(void* arg) {
+    ready_queue* rq = (ready_queue*)arg;
+    
+    while (1) {
+        pthread_mutex_lock(&mt_queue_mutex);
+        
+        // Check if shutdown with empty queue
+        if (mt_shutdown && ready_queue_is_empty(rq)) {
+            pthread_mutex_unlock(&mt_queue_mutex);
+            break;
+        }
+        
+        // Dequeue a PCB if available
+        PCB* curr_pcb = ready_queue_dequeue(rq);
+        pthread_mutex_unlock(&mt_queue_mutex);
+        
+        if (curr_pcb == NULL) {
+            // Queue is empty, wait with timeout and retry
+            pthread_mutex_lock(&mt_queue_mutex);
+            struct timespec ts;
+            clock_gettime(CLOCK_REALTIME, &ts);
+            ts.tv_nsec += 10000000;  // 10ms timeout
+            if (ts.tv_nsec >= 1000000000) {
+                ts.tv_sec++;
+                ts.tv_nsec -= 1000000000;
+            }
+            pthread_cond_timedwait(&mt_queue_cond, &mt_queue_mutex, &ts);
+            pthread_mutex_unlock(&mt_queue_mutex);
+            continue;
+        }
+        
+        // Execute the PCB based on the algorithm (RR/RR30)
+        int time_slice = (rq->algorithm == RR30) ? 30 : 2;
+        
+        // Execute the PCB for one time slice
+        for (int i = 0; i < time_slice && curr_pcb->pc <= curr_pcb->end; i++) {
+            char* line = code_get_line(curr_pcb->pc);
+            if (line != NULL) {
+                parseInput(line);
+            }
+            curr_pcb->pc++;
+        }
+        
+        // Check if the PCB is done or needs to be re-enqueued
+        pthread_mutex_lock(&mt_queue_mutex);
+        
+        if (curr_pcb->pc <= curr_pcb->end) {
+            // PCB not done, re-enqueue for more execution
+            ready_queue_enqueue(rq, curr_pcb);
+        } else {
+            // PCB is complete, clean up
+            if (curr_pcb->should_free_code) {
+                free_code_memory(curr_pcb->start, curr_pcb->end);
+            }
+            pcb_destroy(curr_pcb);
+            // Signal that work has been completed to the main thread
+            pthread_cond_broadcast(&mt_done_cond);
+        }
+        pthread_mutex_unlock(&mt_queue_mutex);
+    }
+    
+    return NULL;
+}
+
+// Initialize the multithreading worker pool
+void scheduler_init_mt(ready_queue* mt_queue, SchedulingAlgorithm algo) {
+    // If MT is already initialized, wait for the previous work to finish first
+    if (mt_initialized) {
+        scheduler_wait_mt(mt_queue);
+    }
+    
+    mt_initialized = 1;
+    mt_shutdown = 0;
+    
+    // Create two worker threads
+    pthread_create(&worker_threads[0], NULL, worker_thread, (void*)mt_queue);
+    pthread_create(&worker_threads[1], NULL, worker_thread, (void*)mt_queue);
+}
+
+// Wait for worker threads to complete all work
+void scheduler_wait_mt(ready_queue* mt_queue) {
+    if (!mt_initialized || !mt_queue) return;
+    
+    pthread_mutex_lock(&mt_queue_mutex);
+    
+    // Keep waiting while there's work to do
+    while (!ready_queue_is_empty(mt_queue)) {
+        pthread_cond_wait(&mt_done_cond, &mt_queue_mutex);
+    }
+    
+    // Queue is empty, signal shutdown
+    mt_shutdown = 1;
+    pthread_cond_broadcast(&mt_queue_cond);
+    pthread_mutex_unlock(&mt_queue_mutex);
+    
+    // Wait for both threads to finish
+    pthread_join(worker_threads[0], NULL);
+    pthread_join(worker_threads[1], NULL);
+    
+    mt_initialized = 0;
+}
+
+// Shutdown the multithreading worker pool
+void scheduler_shutdown_mt() {
+    if (!mt_initialized) return;
+    pthread_mutex_lock(&mt_queue_mutex);
+    mt_shutdown = 1;
+    pthread_cond_broadcast(&mt_queue_cond);
+    pthread_mutex_unlock(&mt_queue_mutex);
+    pthread_join(worker_threads[0], NULL);
+    pthread_join(worker_threads[1], NULL);
+    mt_initialized = 0;
+}
+
+// Set the shared PCB with lock
+void set_shared_pcb(PCB* pcb) {
+    pthread_mutex_lock(&shared_pcb.mutex);
+    shared_pcb.pcb = pcb;
+    pthread_mutex_unlock(&shared_pcb.mutex);
+}
+
+// Clear shared PCB after execution
+void clear_shared_pcb() {
+    pthread_mutex_lock(&shared_pcb.mutex);
+    shared_pcb.pcb = NULL;
+    pthread_mutex_unlock(&shared_pcb.mutex);
 }
