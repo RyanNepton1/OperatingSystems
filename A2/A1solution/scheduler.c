@@ -115,6 +115,10 @@ void run_scheduler(ready_queue* rq) {
             // Set # of lines to run for this time slice
             int time_slice = 2;
             for (int i = 0; i < time_slice; i++) {
+                // Check if process has finished
+                if (curr_pcb->pc > curr_pcb->end) {
+                    break;
+                }
                 char* line = code_get_line(curr_pcb->pc);
                 if (line != NULL) {
                     errorCode += parseInput(line);
@@ -200,6 +204,10 @@ void run_scheduler(ready_queue* rq) {
             // Set # of lines to run for this time slice
             int time_slice = 30;
             for (int i = 0; i < time_slice; i++) {
+                // Check if process has finished
+                if (curr_pcb->pc > curr_pcb->end) {
+                    break;
+                }
                 char* line = code_get_line(curr_pcb->pc);
                 if (line != NULL) {
                     errorCode += parseInput(line);
