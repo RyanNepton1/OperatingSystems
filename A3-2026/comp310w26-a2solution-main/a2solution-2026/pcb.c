@@ -281,16 +281,15 @@ int ensure_page_loaded_for_pcb(struct PCB *pcb) {
         return 0;
     }
 
-    printf("Page fault!\n");
     int target = frame_find_free();
 
     if (target < 0) {
+        printf("Page fault! Victim page contents:\n\n");
         target = frame_pick_lru();
         if (target < 0) {
             return 1;
         }
 
-        printf("Victim page contents:\n");
         for (int i = 0; i < PAGE_SIZE; ++i) {
             const char *victim_line = frame_read_line(target, i);
             if (victim_line) {
@@ -300,9 +299,11 @@ int ensure_page_loaded_for_pcb(struct PCB *pcb) {
                 }
             }
         }
-        printf("End of victim page contents.\n");
+        printf("\nEnd of victim page contents.\n");
 
         invalidate_evicted_mapping(target);
+    } else {
+        printf("Page fault!\n");
     }
 
     install_page_into_frame(pcb->program, page, target);
