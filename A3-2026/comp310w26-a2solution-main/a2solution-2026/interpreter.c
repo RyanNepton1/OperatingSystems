@@ -431,8 +431,12 @@ void runSchedule(struct queue *q, const struct schedule_policy *policy) {
 // see doc in header file
 struct PCB *run_pcb_to_completion(struct PCB *pcb) {
     while (pcb_has_next_instruction(pcb)) {
-        size_t instr = pcb_next_instruction(pcb);
-        parseInput(get_line(instr));
+        ensure_page_loaded_for_pcb(pcb);
+        const char *line = pcb_peek_instruction(pcb);
+        if (line) {
+            parseInput(line);
+        }
+        pcb_advance(pcb);
     }
     free_pcb(pcb);
     return NULL;
@@ -442,7 +446,14 @@ struct PCB *run_pcb_to_completion(struct PCB *pcb) {
 struct PCB *run_pcb_for_n_steps(struct PCB *pcb, size_t n) {
     debug("run n steps: n is %ld\n", n);
     for (; n && pcb_has_next_instruction(pcb); --n) {
-        parseInput(get_line(pcb_next_instruction(pcb)));
+        if (ensure_page_loaded_for_pcb(pcb)) {
+            return pcb;
+        }
+        const char *line = pcb_peek_instruction(pcb);
+        if (line) {
+            parseInput(line);
+        }
+        pcb_advance(pcb);
     }
     debug("run n steps: looped to %ld\n", n);
     // The loop runs until either we've done n steps or the pcb is out of
@@ -531,7 +542,8 @@ int my_exec(char *args[], int args_size, bool MT) {
 
     if (!background_exec) {
         // normal exec
-        reset_linememory_allocator();
+        reset_frame_store();
+        program_registry_reset();
         assert(!q);
         q = alloc_queue();
     } else {
@@ -540,15 +552,14 @@ int my_exec(char *args[], int args_size, bool MT) {
 
 
     for (int n = 0; n < args_size; ++n) {
-        if (program_already_scheduled(q, args[n])) {
-            printf("Bad command: script named %s already scheduled\n", args[n]);
-            goto cleanup;
-        }
         struct PCB *pcb = create_process(args[n]);
         if (!pcb) {
             printf("Failed to create process\n");
             goto cleanup;
         }
+
+        preload_program_pages(pcb->program, 2);
+
         // once threads exist, need to use mutex
         if (threads_created){
             pthread_mutex_lock(&q_mutex);
@@ -605,6 +616,8 @@ top_level_cleanup:
         free_queue(q);
         q = NULL;
         policy = NULL;
+    program_registry_reset();
+    reset_frame_store();
     }
 
 background_cleanup:

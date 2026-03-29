@@ -11,7 +11,9 @@
 
 // Start of everything
 int main(int argc, char *argv[]) {
-    printf("Shell version 1.5 created Dec 2025\n");
+    (void)argc;
+    (void)argv;
+    printf("Frame Store Size = %zu; Variable Store Size = %zu\n", mem_get_frame_store_size(), mem_get_variable_store_size());
 
     char prompt = '$';          // Shell prompt
     char userInput[MAX_USER_INPUT];     // user's input stored here

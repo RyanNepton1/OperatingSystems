@@ -29,7 +29,7 @@ void free_queue(struct queue *q) {
 int program_already_scheduled(struct queue *q, char *name) {
     struct PCB *p = q->head;
     while (p) {
-        if (strcmp(p->name, name) == 0) return 1;
+        if (strcmp(p->program->name, name) == 0) return 1;
         p = p->next;
     }
     return 0;
@@ -82,7 +82,7 @@ void enqueue_sjf(struct queue *q, struct PCB *pcb) {
 
 void enqueue_aging(struct queue *q, struct PCB *pcb) {
 
-    if (q->head && q->head->duration == pcb->duration && pcb->pc) {
+    if (q->head && q->head->duration == pcb->duration && pcb->pc_line) {
         enqueue_ignoring_priority(q, pcb);
     } else {
         enqueue_sjf(q, pcb);
@@ -115,7 +115,7 @@ void __debug_with_age(struct queue *q) {
     struct PCB *pcb = q->head;
     printf("q");
     while (pcb) {
-        printf(" -> %ld %s", pcb->duration, pcb->name);
+        printf(" -> %ld %s", pcb->duration, pcb->program->name);
         pcb = pcb->next;
     }
     printf("\n");
