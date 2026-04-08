@@ -45,13 +45,14 @@ int main(int argc, char *argv[]) {
 int wordEnding(char c) {
     // You may want to add ';' to this at some point,
     // or you may want to find a different way to implement chains.
-    return c == '\0' || c == '\n' || c == ' ';
+    return c == '\0' || c == '\n' || c == ' ' || c == ';';
 }
 
 int parseInput(char inp[]) {
     char tmp[200], *words[100];                            
     int ix = 0, w = 0;
     int wordlen;
+    int TotalErrorS = 0;
     int errorCode;
     for (ix = 0; inp[ix] == ' ' && ix < 1000; ix++); // skip white spaces
     while (inp[ix] != '\n' && inp[ix] != '\0' && ix < 1000) {
@@ -60,17 +61,35 @@ int parseInput(char inp[]) {
             tmp[wordlen] = inp[ix];                        
         }
         tmp[wordlen] = '\0';
-        words[w] = strdup(tmp);
-        w++;
-        if (inp[ix] == '\0') break;
-        ix++; 
+        if (wordlen > 0) {
+            words[w] = strdup(tmp);
+            w++;
+        }
+        // Check for chaining
+        if (inp[ix] == ';') {
+            if (w > 0) {
+                errorCode = interpreter(words, w);
+                TotalErrorS += errorCode;
+            }
+            // reset word count for next command
+            w = 0; 
+            // skip the semicolon
+            ix++;   
+            while (inp[ix] == ' ' && ix < 1000) ix++;
+        }
+        else if (inp[ix] == '\0') break;
+        else ix++; 
     }
+    // Run the last command
     errorCode = interpreter(words, w);
+    // See if any errors != 0
+    TotalErrorS += errorCode;
     return errorCode;
 }
 
 int isAlphanumeric(char inp[]) {
 	for (int i = 0; inp[i] != '\0'; i++) {
+        // Check if character is not alphanumeric
 		if (!isalnum((unsigned char)inp[i])) {
 			return 1;
 		}
